@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>나의 프로필 만들기</title>
+
+  <style>
+    body {
+      background-color: #ffeaf4;
+      text-align: center;
+      padding-top: 80px;
+    }
+
+    h1 {
+      color: #ff3399;
+      font-size: 32px;
+      margin-bottom: 40px;
+    }
+
+    .button-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .button-row {
+      display: flex;
+      flex-direction: row;
+      justify-content: center;
+      gap: 20px;
+    }
+
+    .tag-button {
+      background: linear-gradient(to bottom, #ffb3dd, #ff66aa);
+      color: white;
+      border: 3px solid white;
+      border-radius: 40px;
+      padding: 12px 40px;
+      font-size: 20px;
+      box-shadow: 0 5px 15px rgba(255, 105, 180, 0.4);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      width: 220px;
+      text-align: center;
+    }
+
+    .tag-button:hover {
+      transform: scale(1.05);
+      background: linear-gradient(to bottom, #ffc2e0, #ff80bf);
+    }
+
+    .tag-button.selected {
+      background: linear-gradient(to bottom, #fff0fb, #ff99cc);
+      color: #ff3399;
+      box-shadow: 0 0 20px rgba(255, 105, 180, 0.8);
+      border: 3px solid #ff66aa;
+      font-weight: bold;
+    }
+
+    .cute-button {
+      display: inline-block;
+      background: linear-gradient(to bottom, #ff80b5, #ff4d94);
+      color: white;
+      font-size: 18px;
+      padding: 10px 24px;
+      margin: 10px;
+      border: 3px solid white;
+      border-radius: 20px;
+      box-shadow: 0 5px 15px rgba(255, 105, 180, 0.4);
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.2s ease;
+    }
+
+    .cute-button:hover {
+      transform: scale(1.05);
+      background: linear-gradient(to bottom, #ff99c8, #ff66a3);
+      box-shadow: 0 5px 20px rgba(255, 105, 180, 0.6);
+    }
+    
+    .horizontal-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin-top: 30px;
+    }
+  </style>
+
+  <script>
+    const labels = ['mbti', 'smoke', 'body', 'style'];
+
+    function toggleButton(btn) {
+      const group = btn.parentElement;
+      const buttons = group.querySelectorAll(".tag-button");
+      const groupIndex = Array.from(document.querySelectorAll('.button-row')).indexOf(group);
+
+      buttons.forEach(b => b.classList.remove("selected"));
+      btn.classList.add("selected");
+
+      // 선택한 값 sessionStorage 저장
+      if (groupIndex !== -1) {
+        const key = labels[groupIndex];
+        const value = btn.innerText;
+
+        sessionStorage.setItem(key, value);
+      }
+    }
+
+    function saveProfileAndGo() {
+      for (let key of labels) {
+        if (!sessionStorage.getItem(key)) {
+          alert("모든 항목을 선택해주세요.");
+          return;
+        }
+      }
+
+      sessionStorage.setItem('navigated', 'true');
+
+      // 서버로 보내지 않고 다음 단계로 이동
+      location.href = "ideal.html";
+    }
+
+    function goBackToRegist() {
+      location.href = "regist.html";
+    }
+
+    window.onload = function () {
+      // 이전에 선택한 값 복원
+      const rows = document.querySelectorAll('.button-row');
+
+      rows.forEach((row, idx) => {
+        const savedValue = sessionStorage.getItem(labels[idx]);
+
+        if (savedValue) {
+          row.querySelectorAll(".tag-button").forEach(btn => {
+            if (btn.innerText === savedValue) {
+              btn.classList.add("selected");
+            }
+          });
+        }
+      });
+    }
+  </script>
+
+</head>
+
+<body>
+
+  <h1>나의 프로필 만들기</h1>
+
+  <div class="button-container">
+
+    <div class="button-row">
+      <button type="button" class="tag-button" onclick="toggleButton(this)">내향</button>
+      <button type="button" class="tag-button" onclick="toggleButton(this)">외향</button>
+    </div>
+
+    <div class="button-row">
+      <button type="button" class="tag-button" onclick="toggleButton(this)">흡연자</button>
+      <button type="button" class="tag-button" onclick="toggleButton(this)">비흡연자</button>
+    </div>
+
+    <div class="button-row">
+      <button type="button" class="tag-button" onclick="toggleButton(this)">마름</button>
+      <button type="button" class="tag-button" onclick="toggleButton(this)">보통</button>
+      <button type="button" class="tag-button" onclick="toggleButton(this)">통통</button>
+    </div>
+
+    <div class="button-row">
+      <button type="button" class="tag-button" onclick="toggleButton(this)">트랜디한</button>
+      <button type="button" class="tag-button" onclick="toggleButton(this)">다정한</button>
+      <button type="button" class="tag-button" onclick="toggleButton(this)">유쾌한</button>
+    </div>
+
+    <div class="horizontal-buttons">
+      <input type="button" value="이전" class="cute-button" onclick="goBackToRegist()">
+      <input type="button" value="다음" class="cute-button" onclick="saveProfileAndGo()">
+    </div>
+  </div>
+
+</body>
+</html>

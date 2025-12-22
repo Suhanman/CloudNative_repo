@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>LoveBridge - 로그인</title>
+  <style>
+    body {
+      background-color: #ffeaf4;
+      text-align: center;
+      padding-top: 80px;
+    }
+    .form-wrapper {
+      display: inline-block;
+      background-color: #fff0f7;
+      border: 4px dotted #ff6db3;
+      border-radius: 30px;
+      padding: 40px 50px;
+      box-shadow: 0 0 20px #ffcce6;
+    }
+    h1 {
+      color: #ff3399;
+      margin-bottom: 30px;
+    }
+    input[type="text"],
+    input[type="password"] {
+      width: 250px;
+      padding: 10px;
+      margin: 8px 0;
+      border: 2px solid #ffaad4;
+      border-radius: 15px;
+      background-color: #ffffff;
+    }
+    .btn {
+      background: linear-gradient(to bottom, #ffb3d9, #ff66b2);
+      color: white;
+      font-size: 17px;
+      padding: 10px 30px;
+      border-radius: 20px;
+      cursor: pointer;
+      border: none;
+      margin-top: 15px;
+    }
+    .btn:hover {
+      background: linear-gradient(to bottom, #ff99c8, #ff66a3);
+    }
+    #msg {
+      color: red;
+      margin-top: 15px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="form-wrapper">
+    <h1>로그인</h1>
+
+    <input id="id" type="text" placeholder="아이디"><br>
+    <input id="pw" type="password" placeholder="비밀번호"><br>
+
+    <button class="btn" onclick="login()">로그인</button>
+    <button class="btn" onclick="location.href='../index.html'">취소</button>
+    
+
+    <div id="msg"></div>
+  </div>
+
+  <script>
+    async function login() {
+      const id = document.getElementById("id").value.trim();
+      const pw = document.getElementById("pw").value.trim();
+      const msgBox = document.getElementById("msg");
+
+      if (!id || !pw) {
+        msgBox.innerText = "아이디와 비밀번호를 입력하세요.";
+        return;
+      }
+
+      try {
+        const res = await fetch("/api/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id, pw }),
+          credentials: "include"
+        });
+
+        const data = await res.json();
+
+        if (!res.ok || data.success === false) {
+          msgBox.innerText = data.message || "로그인 실패";
+          return;
+        }
+
+        // 세션 기반 로그인이라 쿠키 자동 저장됨
+        // username 같은 클라이언트 정보만 저장 가능
+        sessionStorage.setItem("username", data.username);
+        sessionStorage.setItem("id", id);
+
+        // 로그인 성공!
+        location.href = "../match/loginmain.html";
+
+      } catch (error) {
+        msgBox.innerText = "서버 오류가 발생했습니다.";
+        console.error(error);
+      }
+    }
+  </script>
+
+</body>
+</html>

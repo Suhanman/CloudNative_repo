@@ -1,0 +1,55 @@
+server:
+  port: 8083
+  address: 0.0.0.0
+  servlet:
+    session:
+      cookie:
+        name: SESSION
+        http-only: true
+        secure: false
+        same-site: lax
+
+spring:
+  application:
+    name: chat-service
+
+  session:
+    store-type: redis
+
+  data:
+    redis:
+      host: ${VMWARE_IP}
+      port: 6379
+
+  datasource:
+    url: jdbc:mariadb://${VMWARE_IP}:33307/matchbridge
+    username: root
+    password: 123456
+    driver-class-name: org.mariadb.jdbc.Driver
+
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+
+mybatis:
+  mapper-locations: classpath:/mappers/*.xml
+  type-aliases-package: com.matchbridge.chat.dto
+
+cloud:
+  aws:
+    credentials:
+      access-key:
+      secret-key:
+    region:
+      static: ap-northeast-2
+    stack:
+      auto: false
+    s3:
+      bucket: cloudnative1004
+
+# ===========================
+# 🔥 프론트엔드 CORS Origin
+# ===========================
+custom:
+  frontend-origin: ${FRONTEND_ORIGIN:http://${VMWARE_IP}:5500}

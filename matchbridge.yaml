@@ -1,0 +1,132 @@
+version: "3.9"
+
+services:
+
+  # ------------------------
+  # Nginx Proxy Manager
+  # ------------------------
+  myproxy:
+    image: jc21/nginx-proxy-manager
+    container_name: matchbridgeproxy
+    restart: unless-stopped
+    networks:
+      - matchbridge-net
+    ports:
+      - "80:80"
+      - "81:81"
+      - "443:443"
+    volumes:
+      - ~/nginx-proxy-manager/data:/data
+      - ~/nginx-proxy-manager/letsencrypt:/etc/letsencrypt
+
+  # ------------------------
+  # Redis
+  # ------------------------
+  redis:
+    image: redis:latest
+    container_name: matchbridgeredis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    command: ["redis-server", "--appendonly", "yes"]
+    networks:
+      - matchbridge-net
+
+  # ------------------------
+  # Frontend
+  # ------------------------
+  frontend:
+    image: nugulsuhan/cloudnative:frontend6
+    container_name: frontend
+    ports:
+      - "5500:80"
+    networks:
+      - matchbridge-net
+
+  # ------------------------
+  # Auth-Service
+  # ------------------------
+  auth-service:
+    image: nugulsuhan/cloudnative:auth-service
+    container_name: auth-service
+    ports:
+      - "8080:80"
+    environment:
+      VMWARE_IP: "192.168.108.129"
+    networks:
+      - matchbridge-net
+
+  # ------------------------
+  # Member-Service
+  # ------------------------
+  member-service:
+    image: nugulsuhan/cloudnative:member-service2
+    container_name: member-service
+    ports:
+      - "8081:80"
+    environment:
+      VMWARE_IP: "192.168.108.129"
+    networks:
+      - matchbridge-net
+
+  # ------------------------
+  # Match-Service
+  # ------------------------
+  match-service:
+    image: nugulsuhan/cloudnative:match-service8
+    container_name: match-service
+    ports:
+      - "8082:80"
+    environment:
+      VMWARE_IP: "192.168.108.129"
+    networks:
+      - matchbridge-net
+
+  # ------------------------
+  # Chat-Service
+  # ------------------------
+  chat-service:
+    image: nugulsuhan/cloudnative:chat-service
+    container_name: chat-service
+    ports:
+      - "8083:80"
+    environment:
+      VMWARE_IP: "192.168.108.129"
+    networks:
+      - matchbridge-net
+
+  # ------------------------
+  # mysql
+  # ------------------------
+  mysql:
+    image: mysql:8.0
+    container_name: matchbridgeDB
+    restart: unless-stopped
+    networks:
+      - matchbridge-net
+    ports:
+      - "33307:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: 123456
+      MYSQL_DATABASE: matchbridge
+    command:
+      [
+        "--default-authentication-plugin=mysql_native_password",
+        "--character-set-server=utf8mb4",
+        "--collation-server=utf8mb4_unicode_ci"
+      ]
+    volumes:
+      - mysql-data:/var/lib/mysql
+
+# ------------------------
+# Networks
+# ------------------------
+networks:
+  matchbridge-net:
+    driver: bridge
+
+# ------------------------
+# Volumes
+# ------------------------
+volumes:
+  mysql-data:

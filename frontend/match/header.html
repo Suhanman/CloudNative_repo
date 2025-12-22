@@ -1,0 +1,145 @@
+<!-- header.html -->
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8" />
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&display=swap" rel="stylesheet">
+
+    <style>
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 30px 60px;
+        }
+
+        .logo a {
+            font-family: 'Playfair Display', serif;
+            font-size: 34px;
+            font-weight: 600;
+            color: #333;
+            text-decoration: none;
+        }
+
+        .logo a span {
+            color: #ff5e99;
+            margin-left: 5px;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 25px;
+            position: relative;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #444;
+            font-weight: bold;
+            font-size: 15px;
+        }
+
+        .badge {
+            position: absolute;
+            top: -8px;
+            right: -10px;
+            background-color: #ff4d94;
+            color: white;
+            border-radius: 50%;
+            padding: 2px 6px;
+            font-size: 10px;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(255, 105, 180, 0.3);
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+<header>
+    <div class="logo">
+        <a href="../match/loginmain.html">MatchBridge <span>💗</span></a>
+    </div>
+
+    <div class="nav-links">
+        <a href="../match/loginmain.html">Home</a>
+        <a href="../auth/logout.html">Logout</a>
+        <a href="../member/memberInfo.html">MemberInfo</a>
+
+        <a href="../chat/chatroom.html" id="chat-link">
+            ❤️채팅방
+            <span id="chat-badge" class="badge">0</span>
+        </a>
+    </div>
+</header>
+
+<script>
+    let currentUserId = null;
+
+    //----------------------------------------------------------
+    // 1) 세션에서 로그인 정보 가져오기
+    //----------------------------------------------------------
+    async function loadSessionUser() {
+        try {
+            const res = await fetch("/api/auth/check-session", {
+                method: "GET",
+                credentials: "include"
+            });
+
+            const data = await res.json();
+
+            if (!data.id) {
+                console.warn("로그인 상태가 아님 → 로그인 페이지로 이동");
+                location.href = "../auth/login.html";
+                return;
+            }
+
+            currentUserId = data.id;  // ★ 세션에서 받아온 로그인 ID
+
+            // unreadCount 자동 로드
+            loadUnreadCount();
+
+        } catch (err) {
+            console.error("세션 확인 실패:", err);
+            location.href = "../auth/login.html";
+        }
+    }
+
+    //----------------------------------------------------------
+    // 2) unreadCount 가져오기 (세션 ID 사용)
+    //----------------------------------------------------------
+    async function loadUnreadCount() {
+        if (!currentUserId) return;
+
+        try {
+            const res = await fetch(`/api/chat/unread/${currentUserId}`, {
+                credentials: "include"
+            });
+
+            const data = await res.json();
+
+            const count = data.unreadCount ?? 0;
+            const badge = document.getElementById("chat-badge");
+
+            if (count > 0) {
+                badge.innerText = count;
+                badge.style.display = "block";
+            } else {
+                badge.style.display = "none";
+            }
+
+        } catch (err) {
+            console.error("unreadCount 로드 실패:", err);
+        }
+    }
+
+    //----------------------------------------------------------
+    // 실행
+    //----------------------------------------------------------
+    loadSessionUser();
+    setInterval(loadUnreadCount, 30000);
+</script>
+
+</body>
+</html>

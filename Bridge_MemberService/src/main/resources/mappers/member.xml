@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+
+<mapper namespace="com.matchbridge.member.mapper.IMemberMapper">
+
+    <!-- 회원 정보 매핑 -->
+    <resultMap type="com.matchbridge.member.dto.MemberDTO" id="dbQuiz">
+        <id column="id" property="id"/>
+        <result column="pw" property="pw"/>
+        <result column="username" property="username"/>
+        <result column="mobile" property="mobile"/>
+        <result column="gender" property="gender"/>
+        <result column="imageUrl" property="imageUrl"/>
+        <result column="age" property="age"/>
+        <result column="home" property="home"/>
+    </resultMap>
+
+  
+
+    <!-- 회원 목록 조회 -->
+    <select id="memberInfo" resultMap="dbQuiz">
+    <choose>
+        <when test="select == 'id'">
+            SELECT id, username, mobile, gender , home
+            FROM member
+            WHERE id LIKE CONCAT('%', #{search}, '%')
+            ORDER BY id
+            LIMIT #{begin}, ${end - begin + 1}
+
+        </when>
+        <when test="select == 'mobile'">
+            SELECT id, username, mobile, gender, home
+            FROM member
+            WHERE mobile LIKE CONCAT('%', #{search}, '%')
+            ORDER BY id
+            LIMIT #{begin}, ${end - begin + 1}
+
+        </when>
+        <otherwise>
+            SELECT id, username, mobile, gender, home
+            FROM member
+            ORDER BY id
+            LIMIT #{begin}, ${end - begin + 1}
+
+        </otherwise>
+    </choose>
+</select>
+
+    <!-- 전체 회원 수 -->
+    <select id="totalCount">
+        <choose>
+            <when test="select == 'id'">
+                SELECT COUNT(id) FROM member WHERE id LIKE CONCAT('%', #{search}, '%')
+            </when>
+            <when test="select == 'mobile'">
+                SELECT COUNT(id) FROM member WHERE mobile LIKE CONCAT('%', #{search}, '%')
+            </when>
+            <otherwise>
+                SELECT COUNT(id) FROM member
+            </otherwise>
+        </choose>
+    </select>
+
+    <!-- 회원 정보 수정 -->
+    <update id="updateProc">
+    UPDATE member
+    SET pw = #{pw},
+        mobile = #{mobile},
+        username = #{username},
+        age = #{age},
+        imageUrl = #{imageUrl},
+        home = #{home}
+    WHERE id = #{id}
+</update>
+
+
+
+    <!-- 나의 프로필 조회 -->
+    <select id="getMyProfileById" parameterType="string" resultType="com.matchbridge.member.dto.MyProfileDTO">
+        SELECT * FROM myprofile WHERE id = #{id}
+    </select>
+
+    <!-- 이상형 프로필 조회 -->
+    <select id="getIdealProfileById" parameterType="string" resultType="com.matchbridge.member.dto.IdealProfileDTO">
+        SELECT id, ideal_mbti, ideal_smoke, ideal_body, ideal_style
+        FROM idealprofile
+        WHERE id = #{id}
+    </select>
+
+    <!-- 이상형 전체 조회 -->
+    <select id="getAllIdealProfiles" resultType="com.matchbridge.member.dto.IdealProfileDTO">
+        SELECT id, ideal_mbti, ideal_smoke, ideal_body, ideal_style
+        FROM idealprofile
+    </select>
+
+    <!-- 특정 회원 정보 -->
+    <select id="userInfoById" parameterType="string" resultMap="dbQuiz">
+        SELECT * FROM member WHERE id = #{id}
+    </select>
+
+
+
+    <!-- 나의 프로필 수정 -->
+    <update id="updateMyProfile" parameterType="com.matchbridge.member.dto.MyProfileDTO">
+        UPDATE myprofile
+        SET mbti = #{mbti},
+            smoke = #{smoke},
+            body = #{body},
+            style = #{style}
+        WHERE id = #{id}
+    </update>
+
+    <!-- 이상형 프로필 수정 -->
+    <update id="updateIdealProfile" parameterType="com.matchbridge.member.dto.IdealProfileDTO">
+        UPDATE idealprofile
+        SET ideal_mbti = #{ideal_mbti},
+            ideal_smoke = #{ideal_smoke},
+            ideal_body = #{ideal_body},
+            ideal_style = #{ideal_style}
+        WHERE id = #{id}
+    </update>
+    
+    <!-- 이성 회원 조회 -->
+<select id="getOppositeGenderMembers"
+        parameterType="string"
+        resultType="com.matchbridge.member.dto.MemberDTO">
+
+    SELECT 
+        id,
+        username,
+        gender,
+        age,
+        home,
+        imageUrl
+    FROM member
+    WHERE gender != #{gender}
+</select>
+    
+
+</mapper>

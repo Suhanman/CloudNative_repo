@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>LoveBridge - 회원가입</title>
+  <style>
+      body {
+         background-color: #ffeaf4;
+         text-align: center;
+         padding-top: 80px;
+      }
+      .form-wrapper {
+         display: inline-block;
+         background-color: #fff0f7;
+         border: 4px dotted #ff6db3;
+         border-radius: 30px;
+         padding: 40px 50px;
+         box-shadow: 0 0 20px #ffcce6;
+      }
+      h1 {
+         color: #ff3399;
+         margin-bottom: 30px;
+      }
+      input[type="text"],
+      input[type="password"] {
+         width: 250px;
+         padding: 10px;
+         margin: 8px 0;
+         border: 2px solid #ffaad4;
+         border-radius: 15px;
+         background-color: #fff;
+      }
+      input::placeholder {
+         color: #ff66a3;
+      }
+      .cute-button {
+         display: inline-block;
+         background: linear-gradient(to bottom, #ff80b5, #ff4d94);
+         color: white;
+         font-size: 18px;
+         padding: 10px 24px;
+         margin: 10px;
+         border: 3px solid white;
+         border-radius: 20px;
+         box-shadow: 0 5px 15px rgba(255, 105, 180, 0.4);
+         cursor: pointer;
+         text-decoration: none;
+         transition: all 0.2s ease;
+      }
+      .cute-button:hover {
+         transform: scale(1.05);
+         box-shadow: 0 8px 20px rgba(255, 105, 180, 0.6);
+      }
+      label {
+         display: block;
+         font-size: 14px;
+         color: #ff66a3;
+         margin-bottom: 5px;
+      }
+      select {
+          width: 270px;
+          padding: 10px;
+          margin: 8px 0;
+          border: 2px solid #ffaad4;
+          border-radius: 15px;
+          background-color: #fff;
+          font-size: 16px;
+          color: #ff3399;
+          appearance: none;
+          background-image: url('data:image/svg+xml;charset=US-ASCII,<svg xmlns="http://www.w3.org/2000/svg" width="4" height="5" viewBox="0 0 4 5"><path fill="%23ff66aa" d="M2 0L0 2h4L2 0z"/></svg>');
+          background-repeat: no-repeat;
+          background-position: right 12px center;
+          background-size: 12px;
+      }
+  </style>
+</head>
+
+<body>
+  <div class="form-wrapper">
+    <h1>💌 회원가입</h1>
+
+    <!-- 서버 redirect 기반 msg 대신, JS에서 직접 메시지 표시용 -->
+    <font color="red" id="msg"></font>
+
+    <!-- 🔥 REST 버전: method / action 제거 (submit 안 씀) -->
+    <form id="f" enctype="multipart/form-data" onsubmit="return false;">
+
+      <input type="text" id="id" name="id" placeholder="아이디" required><br>
+      <label id="idCheckLabel" style="font-size: 13px;"></label>
+
+      <input type="password" id="pw" name="pw" placeholder="비밀번호" oninput="pwCheck()" required><br>
+      <input type="password" id="confirm" name="confirm" placeholder="비밀번호 확인" onchange="pwCheck()" required><br>
+      <label id="pwCheckLabel"></label>
+      <label id="label"></label>
+
+      <input type="text" id="username" name="username" placeholder="이름" required><br>
+      <input type="text" id="mobile" name="mobile" placeholder="전화번호" required><br>
+      <input type="text" id="age" name="age" placeholder="나이" required><br>
+      <input type="text" id="home" name="home" placeholder="거주지(예:서울)" required><br>
+
+      <select name="gender" id="gender" required>
+        <option value="">성별 선택</option>
+        <option value="남성">남</option>
+        <option value="여성">여</option>
+      </select><br>
+
+      <!-- 파일 업로드(숨김) + 커스텀 버튼 -->
+      <input type="file" id="imageFile" name="imageFile" accept="image/*" style="display:none;">
+      <button type="button" id="customFileBtn" class="cute-button">프로필이미지 등록</button><br>
+
+      <img id="preview" src="" alt="이미지 미리보기"
+           style="max-width: 200px; margin-top: 10px; display: none;"><br><br>
+
+      <!-- ✅ 이제 form.submit()이 아니라 JS 함수에서 REST 호출 후 페이지 이동 -->
+      <input type="button" value="다음" class="cute-button" onclick="goProfile()">
+      <input type="button" value="취소" class="cute-button" onclick="cancelJoin()"><br>
+    </form>
+  </div>
+
+  <script>
+    // ==============================
+    // 전역 상태
+    // ==============================
+    let isDuplicateId = false;
+
+    // ==============================
+    // onload: sessionStorage에서 값 복원
+    // ==============================
+    window.onload = function () {
+      const isNavigated = sessionStorage.getItem('navigated') === 'true';
+
+      if (!isNavigated) {
+        sessionStorage.clear();
+      }
+
+      const fields = ['id', 'pw', 'confirm', 'username', 'mobile', 'age', 'home'];
+      fields.forEach(field => {
+        const value = sessionStorage.getItem(field);
+        if (value !== null) {
+          const input = document.getElementById(field);
+          if (input) input.value = value;
+        }
+      });
+
+      const gender = sessionStorage.getItem('gender');
+      if (gender !== null) {
+        document.getElementById('gender').value = gender;
+      }
+
+      const storedImageUrl = sessionStorage.getItem('imageUrl');
+      if (storedImageUrl) {
+        const preview = document.getElementById('preview');
+        preview.src = storedImageUrl;
+        preview.style.display = "block";
+      }
+    };
+
+    // ==============================
+    // 프로필 이미지 버튼 → 숨겨진 input 클릭
+    // ==============================
+    document.getElementById("customFileBtn").addEventListener("click", function() {
+      document.getElementById("imageFile").click();
+    });
+
+    // ==============================
+    // 이미지 미리보기 (로컬)
+    // ==============================
+    document.getElementById("imageFile").addEventListener("change", function () {
+      const file = this.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          const preview = document.getElementById("preview");
+          preview.src = e.target.result;
+          preview.style.display = "block";
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    // ==============================
+    // 비밀번호 체크
+    // ==============================
+    function pwCheck() {
+      const pw = document.getElementById("pw").value;
+      const confirm = document.getElementById("confirm").value;
+      const label = document.getElementById("label");
+      if (pw.length < 5) {
+        label.innerText = "비밀번호는 5자리 이상 입력하세요.";
+        label.style.color = "red";
+      } else if (pw !== confirm) {
+        label.innerText = "비밀번호가 일치하지 않습니다.";
+        label.style.color = "red";
+      } else {
+        label.innerText = "비밀번호가 일치합니다!";
+        label.style.color = "green";
+      }
+    }
+
+    // ==============================
+    // 아이디 중복체크 (REST) - /api/auth/check-id
+    // ==============================
+    document.getElementById("id").addEventListener("blur", function () {
+      const id = this.value.trim();
+      if (!id) return;
+
+      fetch("/api/auth/check-id?id=" + encodeURIComponent(id))
+        .then(response => response.json())
+        .then(result => {
+          const label = document.getElementById("idCheckLabel");
+          if (result.duplicate) {
+            label.innerText = "이미 사용 중인 아이디입니다.";
+            label.style.color = "red";
+            isDuplicateId = true;
+          } else {
+            label.innerText = "사용 가능한 아이디입니다!";
+            label.style.color = "green";
+            isDuplicateId = false;
+          }
+        })
+        .catch(err => {
+          console.error(err);
+          document.getElementById("idCheckLabel").innerText = "중복체크 중 오류 발생";
+          document.getElementById("idCheckLabel").style.color = "red";
+        });
+    });
+
+    // ==============================
+    // 다음 단계로 이동: 기본정보 + (필요 시) 이미지 업로드
+    // ==============================
+    async function goProfile() {
+      const form = document.getElementById("f");
+      const data = new FormData(form);
+
+      const pw = data.get("pw");
+      const confirm = data.get("confirm");
+
+      if (isDuplicateId) {
+        alert("아이디를 다시 확인하세요.");
+        return;
+      }
+
+      if (!pw || !confirm || pw !== confirm) {
+        alert("비밀번호를 다시 확인해주세요.");
+        return;
+      }
+
+      // 문자열 필드 빈 값 체크 (파일 제외)
+      for (const [key, value] of data.entries()) {
+        if (value instanceof File) continue; // imageFile은 여기서 검사 안 함
+        if (typeof value === "string" && !value.trim()) {
+          alert("모든 항목을 입력해주세요.");
+          return;
+        }
+      }
+
+      // ============================
+      // 1) (필요 시) 프로필 이미지 업로드
+      // ============================
+      let imageUrl = sessionStorage.getItem("imageUrl") || "";
+      const imageFile = document.getElementById("imageFile").files[0];
+
+      // 새로 선택한 파일이 있으면 업로드
+      if (imageFile) {
+        try {
+          const uploadForm = new FormData();
+          uploadForm.append("imageFile", imageFile);
+
+          const res = await fetch("/api/auth/profile/image", {
+            method: "POST",
+            body: uploadForm
+          });
+
+          if (!res.ok) {
+            const errJson = await res.json().catch(() => ({}));
+            const msg = errJson.message || "이미지 업로드 중 오류가 발생했습니다.";
+            alert(msg);
+            return;
+          }
+
+          const json = await res.json();
+          imageUrl = json.imageUrl;
+          sessionStorage.setItem("imageUrl", imageUrl);
+        } catch (e) {
+          console.error(e);
+          alert("이미지 업로드에 실패했습니다.");
+          return;
+        }
+      }
+
+      // ============================
+      // 2) 문자열 값들을 sessionStorage에 저장
+      // ============================
+      for (const [key, value] of data.entries()) {
+        if (value instanceof File) continue;  // 파일 제외
+        if (typeof value === "string") {
+          sessionStorage.setItem(key, value);
+        }
+      }
+
+      if (imageUrl) {
+        sessionStorage.setItem("imageUrl", imageUrl);
+      }
+
+      sessionStorage.setItem('navigated', 'true');
+
+      // ============================
+      // 3) 다음 단계(내 프로필 입력 페이지)로 이동
+      //    → 이 페이지에서는 server-side view로 가지 않고,
+      //      정적 profile.html로 라우팅한다고 가정.
+      // ============================
+      location.href = "profile.html";
+    }
+
+    // ==============================
+    // 가입 취소
+    // ==============================
+    function cancelJoin() {
+      sessionStorage.clear();
+      location.href = '../index.html'; // 필요하면 경로 조정
+    }
+  </script>
+</body>
+</html>

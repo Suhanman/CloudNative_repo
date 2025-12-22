@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>MatchBridge</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            background-color: #ffeaf4;
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        h2 {
+            margin-top: 40px;
+            margin-bottom: 30px;
+            margin-left: 60px;
+            font-size: 22px;
+            color: #222;
+        }
+
+        .match-container {
+            padding: 0 60px 60px 60px;
+            display: flex;
+            flex-wrap: wrap;
+        }
+
+        .card {
+            width: 120px;
+            border: 1px solid #ccc;
+            text-align: center;
+            padding: 10px;
+            margin: 12px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
+            transition: transform 0.2s ease-in-out;
+            cursor: pointer;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 4px 4px 10px rgba(0,0,0,0.15);
+        }
+
+        .profile-img {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #a3baff;
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- Header -->
+<div id="header-placeholder"></div>
+
+<h2>Your Matches</h2>
+
+<!-- 로그인 환영 박스 -->
+<div id="welcome-box"
+     style="
+         position: fixed;
+         bottom: 20px;
+         right: 25px;
+         background: rgba(255, 240, 245, 0.95);
+         padding: 12px 18px;
+         border-radius: 14px;
+         box-shadow: 0 4px 12px rgba(255, 105, 180, 0.25);
+         font-weight: bold;
+         font-size: 16px;
+         color: #ff4d94;
+         display: none;
+         z-index: 999;
+     ">
+</div>
+
+<div class="match-container" id="matchContainer"></div>
+
+<script>
+    //----------------------------------------------------------
+    // 1) header.html 삽입
+    //----------------------------------------------------------
+    fetch("header.html")
+        .then(res => res.text())
+        .then(html => document.getElementById("header-placeholder").innerHTML = html);
+
+
+    //----------------------------------------------------------
+    // 2) 로그인한 사용자 정보 가져오기 (세션 기반)
+    //----------------------------------------------------------
+    async function checkSession() {
+        try {
+            const res = await fetch("/api/auth/check-session", {
+                method: "GET",
+                credentials: "include"   // ★ 세션 쿠키 전송
+            });
+
+            const data = await res.json();
+
+            if (data.id) {
+                const welcomeBox = document.getElementById("welcome-box");
+                welcomeBox.innerHTML = `어서오세요! <strong>${data.id}</strong> 님 😊`;
+                welcomeBox.style.display = "block";
+            } 
+        } catch (err) {
+            console.error("세션 확인 실패:", err);
+        }
+    }
+
+    //----------------------------------------------------------
+    // 3) 매칭 데이터 로딩
+    //----------------------------------------------------------
+    async function loadMatches() {
+        try {
+            const res = await fetch("/api/match/card", {
+                method: "GET",
+                credentials: "include"   // ★ 세션 쿠키 전송 필수
+            });
+
+            const response = await res.json();
+
+            
+
+            const matches = response.data;
+            const matchArea = document.getElementById("matchContainer");
+            matchArea.innerHTML = "";
+
+           matches.forEach(match => {
+    const card = `
+        <div class="card" data-id="${match.id}">
+            <img class="profile-img" src="${match.imageUrl}" alt="profile">
+            <p>${match.username}</p>
+            <p>${match.age}세</p>
+            <p>거주지: ${match.home}</p>
+            <p>매칭 점수: ${match.score}</p>
+        </div>
+    `;
+    matchArea.insertAdjacentHTML("beforeend", card);
+});
+
+// 🔥 카드 클릭 이벤트 추가
+document.addEventListener("click", e => {
+    const card = e.target.closest(".card");
+    if (!card) return;
+
+    const targetId = card.dataset.id;
+    location.href = `../chat/chat.html?targetId=${targetId}`;
+});
+
+
+        } catch (err) {
+            console.error("매칭 정보 불러오기 실패:", err);
+        }
+    }
+
+    //----------------------------------------------------------
+    // 4) 페이지 로드시 실행
+    //----------------------------------------------------------
+    checkSession();
+    loadMatches();
+</script>
+
+</body>
+</html>

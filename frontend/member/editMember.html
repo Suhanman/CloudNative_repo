@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>LoveBridge - 개인정보 수정</title>
+
+  <style>
+    body {
+      background-color: #ffeaf4;
+      text-align: center;
+      padding-top: 80px;
+    }
+    .form-wrapper {
+      display: inline-block;
+      background-color: #fff0f7;
+      border: 4px dotted #ff6db3;
+      border-radius: 30px;
+      padding: 40px 50px;
+      box-shadow: 0 0 20px #ffcce6;
+    }
+    h1 {
+      color: #ff3399;
+      margin-bottom: 30px;
+    }
+    input[type="text"],
+    input[type="password"] {
+      width: 250px;
+      padding: 10px;
+      margin: 8px 0;
+      border: 2px solid #ffaad4;
+      border-radius: 15px;
+      background-color: #fff;
+      font-size: 16px;
+    }
+    select {
+      width: 270px;
+      padding: 10px;
+      margin: 8px 0;
+      border: 2px solid #ffaad4;
+      border-radius: 15px;
+      background-color: #eee;
+      font-size: 16px;
+      color: #999;
+    }
+    .cute-button {
+      background: linear-gradient(to bottom, #ff80b5, #ff4d94);
+      color: white;
+      font-size: 18px;
+      padding: 10px 24px;
+      margin: 10px;
+      border: 3px solid white;
+      border-radius: 20px;
+      box-shadow: 0 5px 15px rgba(255, 105, 180, 0.4);
+      cursor: pointer;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="form-wrapper">
+  <h1>📝 개인정보 수정</h1>
+
+  <div>
+    <input type="text" id="id" readonly /><br>
+
+    <input type="password" id="pw" placeholder="새 비밀번호 (선택)" autocomplete="new-password"><br>
+    <input type="password" id="confirm" placeholder="비밀번호 확인" autocomplete="new-password"><br>
+
+    <input type="text" id="username" placeholder="이름" required><br>
+    <input type="text" id="mobile" placeholder="전화번호" required><br>
+    <input type="text" id="age" placeholder="나이" required><br>
+    <input type="text" id="home" placeholder="거주지" required><br>
+
+    <select id="gender" disabled></select>
+  </div>
+
+  <br>
+
+  <input type="file" id="imageFile" accept="image/*" style="display: none;">
+  <button class="cute-button" id="customFileBtn">프로필 이미지 변경</button><br>
+
+  <img id="preview"
+       src=""
+       style="width:150px; height:150px; border-radius:50%; border:3px solid #ffaad4; object-fit:cover; margin-top:10px;">
+  <br>
+
+  <button class="cute-button" onclick="submitEdit()">수정 완료</button>
+  <button class="cute-button" onclick="location.href='memberInfo.html'">취소</button>
+
+</div>
+
+<script>
+
+  // -------------------------------------------------------------------
+  // 1) 로그인 여부 체크 (세션 기반)
+  // -------------------------------------------------------------------
+  async function checkSession() {
+    const res = await fetch("/api/auth/check-session", {
+      method: "GET",
+      credentials: "include"
+    });
+
+    const data = await res.json();
+    if (!data.id) {
+      alert("로그인이 필요합니다.");
+      location.href = "../auth/login.html";
+    }
+  }
+
+  checkSession();
+
+
+  // -------------------------------------------------------------------
+  // 2) 회원정보 불러오기 (ID 필요 없음, 세션에서 읽음)
+  // -------------------------------------------------------------------
+  async function loadMember() {
+    const res = await fetch("/api/member/me", {
+      method: "GET",
+      credentials: "include"
+    });
+
+    const data = await res.json();
+
+    document.getElementById("id").value = data.id;
+    document.getElementById("username").value = data.username;
+    document.getElementById("mobile").value = data.mobile;
+    document.getElementById("age").value = data.age;
+    document.getElementById("home").value = data.home;
+
+    document.getElementById("gender").innerHTML = `<option>${data.gender}</option>`;
+    document.getElementById("preview").src = data.imageUrl || "";
+  }
+
+  loadMember();
+
+
+  // -------------------------------------------------------------------
+  // 3) 이미지 미리보기
+  // -------------------------------------------------------------------
+  document.getElementById("customFileBtn").addEventListener("click", () => {
+    document.getElementById("imageFile").click();
+  });
+
+  document.getElementById("imageFile").addEventListener("change", () => {
+    const file = document.getElementById("imageFile").files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = e => document.getElementById("preview").src = e.target.result;
+      reader.readAsDataURL(file);
+    }
+  });
+
+
+  // -------------------------------------------------------------------
+  // 4) 개인정보 수정 제출 (세션 기반)
+  // -------------------------------------------------------------------
+  async function submitEdit() {
+
+    const pw = document.getElementById("pw").value;
+    const confirm = document.getElementById("confirm").value;
+
+    if (pw && pw !== confirm) {
+      alert("비밀번호가 일치하지 않습니다.");
+      return;
+    }
+
+    // 이미지 업로드
+    let imageUrl = null;
+    const file = document.getElementById("imageFile").files[0];
+
+    if (file) {
+      const formData = new FormData();
+      formData.append("imageFile", file);
+
+      const uploadRes = await fetch("/api/member/editMember/image", {
+        method: "POST",
+        credentials: "include",
+        body: formData
+      });
+
+      const upload = await uploadRes.json();
+      imageUrl = upload.imageUrl;
+    }
+
+    // 수정 요청 
+    const res = await fetch("/api/member/editMember", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({
+        pw: pw || "",
+        confirm: confirm || "",
+        username: document.getElementById("username").value,
+        mobile: document.getElementById("mobile").value,
+        age: document.getElementById("age").value,
+        home: document.getElementById("home").value,
+        imageUrl: imageUrl
+      })
+    });
+
+ const result = await res.json();
+alert(result.message);
+
+if (result.message.toLowerCase().includes("ok")) {
+    window.location.href = "../memberInfo.html";
+}
+
+
+  }
+
+</script>
+
+</body>
+</html>

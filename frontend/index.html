@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8" />
+    <title>LoveBridge - Home</title>
+    <style>
+        /* ===== header.jsp 스타일 옮김 ===== */
+        a {
+            text-decoration: none;
+            color: black;
+        }
+        ul {
+            padding: 20px;
+        }
+        ul li {
+            display: inline;
+            padding: 15px;
+        }
+        .main_div_header {
+            height: 150px;
+            padding-top: 40px;
+            text-align: center;
+        }
+
+        /* ===== main.jsp 스타일 옮김 ===== */
+        body {
+            background-color: #ffeaf4;
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        .main_div {
+            display: inline-block;
+            background-color: #fff0f7;
+            border-radius: 20px;
+            padding: 40px 60px;
+            box-shadow: 0 10px 30px rgba(255, 105, 180, 0.5);
+            margin-top: 80px;
+            text-align: center;
+        }
+
+        .cute-title {
+            font-size: 32px;
+            margin-bottom: 10px;
+            color: #ff3399;
+        }
+
+        .cute-subtitle {
+            font-size: 16px;
+            margin-bottom: 30px;
+            color: #ff6699;
+        }
+
+        .cute-button {
+            display: inline-block;
+            background: linear-gradient(to bottom, #ffb3d9, #ff66b2);
+            color: white;
+            padding: 12px 30px;
+            border-radius: 30px;
+            font-size: 16px;
+            font-weight: bold;
+            margin: 10px 0;
+            box-shadow: 0 5px 15px rgba(255, 105, 180, 0.4);
+            transition: transform 0.1s ease, box-shadow 0.1s ease, background 0.2s ease;
+        }
+
+        .cute-button:hover {
+            transform: scale(1.05);
+            background: linear-gradient(to bottom, #ff99c8, #ff66a3);
+            box-shadow: 0 5px 20px rgba(255, 105, 180, 0.6);
+        }
+
+        /* ===== footer.jsp 스타일 ===== */
+        footer {
+            margin-top: 80px;
+            text-align: center;
+            padding: 20px 0;
+            border-top: 1px solid #ccc;
+            color: #555;
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- ===== HEADER 영역 (header.jsp 기반) ===== -->
+    <header>
+        <div class="main_div_header">
+            <h1>MatchBridge</h1>
+            <ul>
+                <!-- 지금은 정적 HTML 기준 링크, 나중에 실제 페이지 생기면 경로 맞추면 됨 -->
+                <!-- 로그인 후에는 로그인/회원가입 대신 다른 메뉴로 바꾸는 건 JS로 처리하면 됨 -->
+                <!-- <li><a href="member/profile.html">내 프로필</a></li> -->
+                <!-- <li><a href="match/loginmain.html">매칭</a></li> -->
+                <!-- <li><a href="member/logout.html">로그아웃</a></li> -->
+            </ul>
+            <hr />
+        </div>
+    </header>
+
+    <!-- ===== MAIN 영역 (main.jsp 기반) ===== -->
+    <main style="text-align: center;">
+        <div class="main_div">
+            <div class="cute-title">MatchBridge에 오신 것을 환영합니다 </div>
+            <div class="cute-subtitle">지금 바로 나와 잘 맞는 상대를 찾아보세요!</div>
+
+            <!-- JSP에서는 ${context}regist 였지만, 정적 HTML에선 상대 경로로 처리 -->
+            <a href="auth/regist.html" class="cute-button">💌 회원가입</a><br />
+            <a href="auth/login.html" class="cute-button">💌 로그인</a>
+        </div>
+
+        <!-- 기존 index.jsp의 ${msg} 부분 대체 (URL 파라미터 사용) -->
+        <div id="message" style="text-align:center; margin-top:20px; color:#ff3399; font-weight:bold;"></div>
+    </main>
+
+    <!-- ===== FOOTER 영역 (footer.jsp 기반) ===== -->
+    <footer>
+        Copyright MATCHBRIDGE
+    </footer>
+
+    <!-- ===== 메시지 처리 스크립트 (선택) ===== -->
+    <script>
+        // 기존 JSP에서 ${msg}를 찍어주던 역할을
+        // URL 파라미터 ?msg=회원가입완료 식으로 대체
+        const params = new URLSearchParams(window.location.search);
+        const msg = params.get("msg");
+        if (msg) {
+            document.getElementById("message").innerText = decodeURIComponent(msg);
+        }
+    </script>
+</body>
+</html>

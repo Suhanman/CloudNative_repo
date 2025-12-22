@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>나의 이상형</title>
+
+  <style>
+    body {
+      background-color: #ffeaf4;
+      text-align: center;
+      padding-top: 80px;
+    }
+
+    h1 {
+      color: #ff3399;
+      font-size: 32px;
+      margin-bottom: 40px;
+    }
+
+    .button-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .button-row {
+      display: flex;
+      flex-direction: row;
+      justify-content: center;
+      gap: 20px;
+    }
+
+    .tag-button {
+      background: linear-gradient(to bottom, #ffb3dd, #ff66aa);
+      color: white;
+      border: 3px solid white;
+      border-radius: 40px;
+      padding: 12px 40px;
+      font-size: 20px;
+      box-shadow: 0 5px 15px rgba(255, 105, 180, 0.4);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      width: 220px;
+      text-align: center;
+    }
+
+    .tag-button.selected {
+      background: linear-gradient(to bottom, #fff0fb, #ff99cc);
+      color: #ff3399;
+      box-shadow: 0 0 20px rgba(255, 105, 180, 0.8);
+      border: 3px solid #ff66aa;
+      font-weight: bold;
+    }
+
+    .cute-button {
+      display: inline-block;
+      background: linear-gradient(to bottom, #ff80b5, #ff4d94);
+      color: white;
+      font-size: 18px;
+      padding: 10px 24px;
+      margin: 10px;
+      border: 3px solid white;
+      border-radius: 20px;
+      box-shadow: 0 5px 15px rgba(255, 105, 180, 0.4);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .horizontal-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin-top: 30px;
+    }
+  </style>
+
+  <script>
+    const labels = ["ideal_mbti", "ideal_smoke", "ideal_body", "ideal_style"];
+
+    function toggleButton(btn) {
+      const group = btn.parentElement;
+      const buttons = group.querySelectorAll(".tag-button");
+      const groupIndex = Array.from(document.querySelectorAll('.button-row')).indexOf(group);
+
+      buttons.forEach(b => b.classList.remove("selected"));
+      btn.classList.add("selected");
+
+      if (groupIndex !== -1) {
+        sessionStorage.setItem(labels[groupIndex], btn.innerText.trim());
+      }
+    }
+
+    async function submitIdeal() {
+
+      // 모든 항목 선택 확인
+      for (let key of labels) {
+        if (!sessionStorage.getItem(key)) {
+          alert("모든 이상형 항목을 선택해주세요.");
+          return;
+        }
+      }
+
+      // JSON data 조합 (MemberDTO 구조에 맞춤)
+      const data = {
+        id: sessionStorage.getItem("id"),
+        pw: sessionStorage.getItem("pw"),
+        confirm: sessionStorage.getItem("confirm"),
+        username: sessionStorage.getItem("username"),
+        mobile: sessionStorage.getItem("mobile"),
+        gender: sessionStorage.getItem("gender"),
+        age: sessionStorage.getItem("age"),
+        home: sessionStorage.getItem("home"),
+        imageUrl: sessionStorage.getItem("imageUrl"),
+
+        mbti: sessionStorage.getItem("mbti"),
+        smoke: sessionStorage.getItem("smoke"),
+        body: sessionStorage.getItem("body"),
+        style: sessionStorage.getItem("style"),
+
+        ideal_mbti: sessionStorage.getItem("ideal_mbti"),
+        ideal_smoke: sessionStorage.getItem("ideal_smoke"),
+        ideal_body: sessionStorage.getItem("ideal_body"),
+        ideal_style: sessionStorage.getItem("ideal_style")
+      };
+
+      try {
+        const response = await fetch("/api/auth/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+          alert(result.message || "회원가입 중 오류 발생");
+          return;
+        }
+
+        alert("회원가입이 완료되었습니다!");
+        sessionStorage.clear();
+        location.href = "login.html";
+
+      } catch (err) {
+        console.error(err);
+        alert("서버 오류가 발생했습니다.");
+      }
+    }
+
+    function goBackToProfile() {
+      location.href = "profile.html";
+    }
+  </script>
+
+</head>
+
+<body>
+
+  <h1>이상형 프로필 만들기</h1>
+
+  <div class="button-container">
+
+    <div class="button-row">
+      <button type="button" class="tag-button" onclick="toggleButton(this)">내향</button>
+      <button type="button" class="tag-button" onclick="toggleButton(this)">외향</button>
+    </div>
+
+    <div class="button-row">
+      <button type="button" class="tag-button" onclick="toggleButton(this)">흡연자</button>
+      <button type="button" class="tag-button" onclick="toggleButton(this)">비흡연자</button>
+    </div>
+
+    <div class="button-row">
+      <button type="button" class="tag-button" onclick="toggleButton(this)">마름</button>
+      <button type="button" class="tag-button" onclick="toggleButton(this)">보통</button>
+      <button type="button" class="tag-button" onclick="toggleButton(this)">통통</button>
+    </div>
+
+    <div class="button-row">
+      <button type="button" class="tag-button" onclick="toggleButton(this)">트랜디한</button>
+      <button type="button" class="tag-button" onclick="toggleButton(this)">유쾌한</button>
+      <button type="button" class="tag-button" onclick="toggleButton(this)">다정한</button>
+    </div>
+
+    <div class="horizontal-buttons">
+      <input type="button" value="이전" class="cute-button" onclick="goBackToProfile()">
+      <input type="button" value="완료" class="cute-button" onclick="submitIdeal()">
+    </div>
+
+  </div>
+
+</body>
+</html>

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.matchbridge.auth.mapper.AuthMemberMapper">
+
+    <!-- 회원 정보 매핑 -->
+    <resultMap type="com.matchbridge.auth.dto.RegistDTO" id="dbQuiz">
+        <id column="id" property="id"/>
+        <result column="pw" property="pw"/>
+        <result column="username" property="username"/>
+        <result column="mobile" property="mobile"/>
+        <result column="gender" property="gender"/>
+        <result column="imageUrl" property="imageUrl"/>
+        <result column="age" property="age"/>
+        <result column="home" property="home"/>
+    </resultMap>
+
+    <!-- 회원 등록 -->
+    <insert id="registProc" parameterType="com.matchbridge.auth.dto.RegistDTO">
+        INSERT INTO member (id, pw, username, mobile, gender, age, imageUrl, home)
+        VALUES (#{id}, #{pw}, #{username}, #{mobile}, #{gender}, #{age}, #{imageUrl}, #{home})
+    </insert>
+     <insert id="insertMyProfile" parameterType="com.matchbridge.auth.dto.RegistDTO">
+        INSERT INTO myprofile (id, mbti, smoke, body, style)
+        VALUES (#{id}, #{mbti}, #{smoke}, #{body}, #{style})
+    </insert>
+
+    <!-- 이상형 프로필 등록 -->
+    <insert id="insertIdealProfile" parameterType="com.matchbridge.auth.dto.RegistDTO">
+        INSERT INTO idealprofile (id, ideal_mbti, ideal_smoke, ideal_body, ideal_style)
+        VALUES (#{id}, #{ideal_mbti}, #{ideal_smoke}, #{ideal_body}, #{ideal_style})
+    </insert>
+
+    <!-- 로그인 -->
+    <select id="login" parameterType="string" resultMap="dbQuiz">
+        SELECT * FROM member WHERE id = #{id}
+    </select>
+
+</mapper>
